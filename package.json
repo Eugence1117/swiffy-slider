@@ -59,5 +59,8 @@
     "devDependencies": {
         "esbuild": "0.25.8",
         "microbundle": "^0.15.1"
+    },
+    "dependencies": {
+        "swiffy-slider": "github:Eugence1117/swiffy-slider"
     }
 }

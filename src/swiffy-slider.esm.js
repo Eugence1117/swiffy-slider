@@ -1,4 +1,15 @@
-export const swiffyslider = function() {
+function validateRootMargin(value) {
+    if (typeof value !== 'string') return false;
+
+    const parts = value.trim().split(/\s+/);
+    if (parts.length < 1 || parts.length > 4) return false;
+
+    const isValidUnit = (str) => /^-?\d*\.?\d+(px|%)$/.test(str);
+
+    return parts.every(isValidUnit);
+}
+
+export const swiffyslider = function () {
     return {
         version: "1.6.0",
         init(rootElement = document.body) {
@@ -27,6 +38,8 @@ export const swiffyslider = function() {
         },
 
         setVisibleSlides(sliderElement, threshold = 0.3) {
+            const container = sliderElement.querySelector(".slider-container");
+            const rootMargin = container.getAttribute("data-root-margin") ?? "";
             let observer = new IntersectionObserver(slides => {
                 slides.forEach(slide => {
                     slide.isIntersecting ? slide.target.classList.add("slide-visible") : slide.target.classList.remove("slide-visible");
@@ -34,8 +47,9 @@ export const swiffyslider = function() {
                 sliderElement.querySelector(".slider-container>*:first-child").classList.contains("slide-visible") ? sliderElement.classList.add("slider-item-first-visible") : sliderElement.classList.remove("slider-item-first-visible");
                 sliderElement.querySelector(".slider-container>*:last-child").classList.contains("slide-visible") ? sliderElement.classList.add("slider-item-last-visible") : sliderElement.classList.remove("slider-item-last-visible");
             }, {
-                root: sliderElement.querySelector(".slider-container"),
-                threshold: threshold
+                root: container,
+                threshold: threshold,
+                rootMargin: validateRootMargin(rootMargin) ? rootMargin : ''
             });
             for (let slide of sliderElement.querySelectorAll(".slider-container>*"))
                 observer.observe(slide);
@@ -92,7 +106,7 @@ export const swiffyslider = function() {
 
         onSlideEnd(sliderElement, delegate, timeout = 125) {
             let isScrolling;
-            sliderElement.querySelector(".slider-container").addEventListener("scroll", function() {
+            sliderElement.querySelector(".slider-container").addEventListener("scroll", function () {
                 window.clearTimeout(isScrolling);
                 isScrolling = setTimeout(delegate, timeout);
             }, { capture: false, passive: true });
@@ -102,19 +116,19 @@ export const swiffyslider = function() {
             timeout = timeout < 750 ? 750 : timeout;
             let autoplayTimer = setInterval(() => this.slide(sliderElement), timeout);
             const autoplayer = () => {
-                ["mouseout", "touchend"].forEach(function(event) {
+                ["mouseout", "touchend"].forEach(function (event) {
                     sliderElement.removeEventListener(event, autoplayer);
                 });
 
                 this.autoPlay(sliderElement, timeout, autopause);
             }
             if (autopause) {
-                ["mouseover", "touchstart"].forEach(function(event) {
-                    sliderElement.addEventListener(event, function() {
+                ["mouseover", "touchstart"].forEach(function (event) {
+                    sliderElement.addEventListener(event, function () {
                         window.clearTimeout(autoplayTimer);
                     }, { once: true, passive: true });
                 });
-                ["mouseout", "touchend"].forEach(function(event) {
+                ["mouseout", "touchend"].forEach(function (event) {
                     sliderElement.addEventListener(event, autoplayer, { once: true, passive: true });
                 });
             }
