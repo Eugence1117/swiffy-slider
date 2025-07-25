@@ -24,6 +24,8 @@ const swiffyslider = function() {
         },
 
         setVisibleSlides(sliderElement, threshold = 0.3) {
+            const container = sliderElement.querySelector(".slider-container");
+            const rootMargin = container.getAttribute("data-root-margin") ?? "";
             let observer = new IntersectionObserver(slides => {
                 slides.forEach(slide => {
                     slide.isIntersecting ? slide.target.classList.add("slide-visible") : slide.target.classList.remove("slide-visible");
@@ -31,8 +33,9 @@ const swiffyslider = function() {
                 sliderElement.querySelector(".slider-container>*:first-child").classList.contains("slide-visible") ? sliderElement.classList.add("slider-item-first-visible") : sliderElement.classList.remove("slider-item-first-visible");
                 sliderElement.querySelector(".slider-container>*:last-child").classList.contains("slide-visible") ? sliderElement.classList.add("slider-item-last-visible") : sliderElement.classList.remove("slider-item-last-visible");
             }, {
-                root: sliderElement.querySelector(".slider-container"),
-                threshold: threshold
+                root: container,
+                threshold: threshold,
+                rootMargin: validateRootMargin(rootMargin) ? rootMargin : ''
             });
             sliderElement.querySelectorAll(".slider-container>*").forEach(slide => observer.observe(slide));
         },
@@ -130,6 +133,17 @@ const swiffyslider = function() {
         }
     };
 }();
+
+function validateRootMargin(value) {
+  if (typeof value !== 'string') return false;
+
+  const parts = value.trim().split(/\s+/);
+  if (parts.length < 1 || parts.length > 4) return false;
+
+  const isValidUnit = (str) => /^-?\d*\.?\d+(px|%)$/.test(str);
+
+  return parts.every(isValidUnit);
+}
 
 window.swiffyslider = swiffyslider;
 if (!document.currentScript.hasAttribute("data-noinit")) {
