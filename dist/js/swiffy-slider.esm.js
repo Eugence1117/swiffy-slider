@@ -1,5 +1,12 @@
 (() => {
   // src/swiffy-slider.esm.js
+  function validateRootMargin(value) {
+    if (typeof value !== "string") return false;
+    const parts = value.trim().split(/\s+/);
+    if (parts.length < 1 || parts.length > 4) return false;
+    const isValidUnit = (str) => /^-?\d*\.?\d+(px|%)$/.test(str);
+    return parts.every(isValidUnit);
+  }
   var swiffyslider = /* @__PURE__ */ function() {
     return {
       version: "1.6.0",
@@ -27,6 +34,8 @@
         }
       },
       setVisibleSlides(sliderElement, threshold = 0.3) {
+        const container = sliderElement.querySelector(".slider-container");
+        const rootMargin = container.getAttribute("data-root-margin") ?? "";
         let observer = new IntersectionObserver((slides) => {
           slides.forEach((slide) => {
             slide.isIntersecting ? slide.target.classList.add("slide-visible") : slide.target.classList.remove("slide-visible");
@@ -34,8 +43,9 @@
           sliderElement.querySelector(".slider-container>*:first-child").classList.contains("slide-visible") ? sliderElement.classList.add("slider-item-first-visible") : sliderElement.classList.remove("slider-item-first-visible");
           sliderElement.querySelector(".slider-container>*:last-child").classList.contains("slide-visible") ? sliderElement.classList.add("slider-item-last-visible") : sliderElement.classList.remove("slider-item-last-visible");
         }, {
-          root: sliderElement.querySelector(".slider-container"),
-          threshold
+          root: container,
+          threshold,
+          rootMargin: validateRootMargin(rootMargin) ? rootMargin : ""
         });
         for (let slide of sliderElement.querySelectorAll(".slider-container>*"))
           observer.observe(slide);
